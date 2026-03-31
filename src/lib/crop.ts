@@ -16,14 +16,6 @@ export function cropExercise(
       const bboxWidth = bbox.right - bbox.left;
       const bboxHeight = bbox.bottom - bbox.top;
 
-      console.log(`[Crop] Input bbox:`, bbox);
-      console.log(
-        `[Crop] Source image: ${img.naturalWidth}x${img.naturalHeight}`
-      );
-      console.log(
-        `[Crop] Bbox size: ${bboxWidth.toFixed(1)}% wide x ${bboxHeight.toFixed(1)}% tall`
-      );
-
       if (bboxWidth < 1 || bboxHeight < 1) {
         console.warn(`[Crop] Bbox too small (<1%), falling back to full page`);
         resolve(pageDataUrl);
@@ -52,10 +44,6 @@ export function cropExercise(
         sy = Math.max(0, sy - Math.floor(diff / 2));
         sh = Math.min(img.naturalHeight - sy, MIN_CROP_HEIGHT_PX);
       }
-
-      console.log(
-        `[Crop] Pixel region: sx=${sx.toFixed(0)}, sy=${sy.toFixed(0)}, sw=${sw.toFixed(0)}, sh=${sh.toFixed(0)}`
-      );
 
       const canvas = document.createElement("canvas");
       canvas.width = sw;

@@ -15,7 +15,10 @@
       "Bash(npm init:*)",
       "Bash(npm install:*)",
       "Bash(node -e \"console.log\\(require\\(''pdfjs-dist/package.json''\\).version\\)\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Read(//c/Users/matas/Documents/**)",
+      "Read(//c/Users/matas/Desktop/**)",
+      "Read(//c/Users/matas/Downloads/**)"
     ]
   }
 }

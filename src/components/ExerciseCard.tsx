@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo } from "react";
+import { useState, memo } from "react";
 import type { Exercise } from "@/lib/types";
 import { getEffectiveCrop } from "@/lib/crop";
 
@@ -70,14 +70,6 @@ export const ExerciseCard = memo(function ExerciseCard({
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
     "idle"
   );
-
-  useEffect(() => {
-    const userAdjusted =
-      exercise.croppedDataUrl !== exercise.displayCroppedDataUrl;
-    console.log(
-      `[Card ${exercise.exerciseNumber}] userAdjusted=${userAdjusted}, showing=${userAdjusted ? "croppedDataUrl" : "displayCroppedDataUrl"}`
-    );
-  }, [exercise.id, exercise.croppedDataUrl, exercise.displayCroppedDataUrl, exercise.exerciseNumber]);
 
   const handleCopy = async () => {
     const dataUrl = await getEffectiveCrop(

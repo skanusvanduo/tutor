@@ -194,14 +194,6 @@ export function useExercises() {
         const compressForApi = await loadCompress();
         const base64 = await compressForApi(page.dataUrl);
 
-        // Log what context is being sent
-        const expectedNext = lastExerciseId
-          ? parseInt(lastExerciseId, 10) + 1
-          : undefined;
-        console.log(
-          `[${classification.sourceFile} p${classification.pageNumber}] Sending extraction request. lastExerciseId=${lastExerciseId ?? "none"}, expecting exercises to start at ${expectedNext ?? "unknown"}`
-        );
-
         try {
           const res = await fetch("/api/extract", {
             method: "POST",
@@ -217,15 +209,6 @@ export function useExercises() {
           if (res.ok) {
             const data = await res.json();
             const extracted: ApiExercise[] = data.exercises || [];
-
-            const extractedIds = extracted.map((e: ApiExercise) => e.exercise_id).join(", ");
-            console.log(
-              `[${classification.sourceFile} p${classification.pageNumber}] Found exercises [${extractedIds}]. Expected to start at ${expectedNext ?? "unknown"}.`
-            );
-            console.log(
-              `[${classification.sourceFile} p${classification.pageNumber}] Raw Claude response:`,
-              JSON.stringify(extracted, null, 2)
-            );
 
             for (let j = 0; j < extracted.length; j++) {
               const ex = extracted[j];
@@ -380,9 +363,6 @@ export function useExercises() {
 
               // Targeted re-scan for each gap (one API call per gap, once per page)
               for (const gap of gaps) {
-                console.log(
-                  `[${classification.sourceFile} p${classification.pageNumber}] Targeted re-scan for missing exercises [${gap.missingIds.join(", ")}] in ${gap.column} column (${gap.topPct.toFixed(0)}%-${gap.bottomPct.toFixed(0)}%)`
-                );
                 try {
                   const gapRes = await fetch("/api/extract", {
                     method: "POST",
@@ -399,9 +379,6 @@ export function useExercises() {
                     const gapData = await gapRes.json();
                     const gapExercises: ApiExercise[] =
                       gapData.exercises || [];
-                    console.log(
-                      `[${classification.sourceFile} p${classification.pageNumber}] Targeted scan found ${gapExercises.length} exercises: [${gapExercises.map((e: ApiExercise) => e.exercise_id).join(", ")}]`
-                    );
 
                     // Process and add gap exercises
                     for (const gapEx of gapExercises) {
