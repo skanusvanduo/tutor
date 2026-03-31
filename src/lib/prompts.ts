@@ -6,7 +6,7 @@ export const PAGE_CLASSIFICATION_PROMPT = `Look at this math textbook page. Clas
 
 - "theory_only": A page that contains only explanations, definitions, proofs, or worked examples (marked "pavyzdys" or "Sprendimas") with NO exercises for the student to solve independently.
 
-- "answers": A page containing answer keys (dense text with solutions listed by exercise number).
+- "answers": A page containing solutions or answers to exercises. Key indicators: dense small text, lists of results in the format 'a) x∈(...); b) x∈(...)' or similar interval/set notation, exercise numbers followed immediately by their solutions rather than the problem text, no workspace or blank areas. Often appears at the end of the PDF. If a page looks like it contains results rather than questions, classify it as answers.
 
 - "title_page": A decorative title/intro page with no exercises.
 
