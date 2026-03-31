@@ -84,7 +84,7 @@ export function ExerciseGrid({
   }, [displayExercises, groupByFile]);
 
   const gridClasses =
-    "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4";
+    "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4";
 
   const renderCards = (list: Exercise[], indexOffset = 0) =>
     list.map((ex, i) => (

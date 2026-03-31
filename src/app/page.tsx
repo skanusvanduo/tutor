@@ -5,7 +5,6 @@ import { useExercises } from "@/hooks/useExercises";
 import { FileUpload } from "@/components/FileUpload";
 import { ExtractionProgress } from "@/components/ExtractionProgress";
 import { ExerciseGrid } from "@/components/ExerciseGrid";
-import { CostConfirmation } from "@/components/CostConfirmation";
 import { ZoomModal } from "@/components/ZoomModal";
 import { WorksheetPreview } from "@/components/WorksheetPreview";
 
@@ -19,11 +18,9 @@ export default function Home() {
     difficultyFilter,
     difficultyCounts,
     error,
-    costEstimate,
     setDifficultyFilter,
     handleFilesSelected,
-    confirmAndProcess,
-    cancelConfirmation,
+    cancelProcessing,
     toggleSelection,
     selectAllVisible,
     clearSelection,
@@ -60,7 +57,7 @@ export default function Home() {
               {exercises.length} exercises
             </span>
           )}
-          {phase !== "upload" && phase !== "confirming" && (
+          {phase !== "upload" && (
             <button
               onClick={handleClearAll}
               className={`text-sm cursor-pointer px-3 py-1 rounded ${
@@ -89,15 +86,6 @@ export default function Home() {
         <FileUpload onFilesSelected={handleFilesSelected} />
       )}
 
-      {/* Cost confirmation phase */}
-      {phase === "confirming" && costEstimate && (
-        <CostConfirmation
-          estimate={costEstimate}
-          onConfirm={confirmAndProcess}
-          onCancel={cancelConfirmation}
-        />
-      )}
-
       {/* Processing phases */}
       {(phase === "rendering" ||
         phase === "classifying" ||
@@ -107,6 +95,7 @@ export default function Home() {
           current={progress.current}
           total={progress.total}
           label={progress.label}
+          onCancel={cancelProcessing}
         />
       )}
 

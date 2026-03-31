@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import type {
   PageImage,
   Exercise,
@@ -35,12 +35,6 @@ interface ApiExercise {
   bbox?: { top?: number; left?: number; bottom?: number; right?: number };
 }
 
-interface CostEstimate {
-  files: { name: string; pageCount: number }[];
-  totalPages: number;
-  estimatedCost: number;
-}
-
 const ZERO_PAD: UncropPad = { top: 0, right: 0, bottom: 0, left: 0 };
 
 export function useExercises() {
@@ -54,7 +48,7 @@ export function useExercises() {
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [error, setError] = useState<string | null>(null);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
-  const [costEstimate, setCostEstimate] = useState<CostEstimate | null>(null);
+  const cancelledRef = useRef(false);
 
   const selectedExercises = useMemo(
     () => exercises.filter((e) => e.selected),
@@ -76,42 +70,24 @@ export function useExercises() {
     return counts;
   }, [exercises]);
 
-  // Step 1: User selects files — count pages and show cost estimate
-  const handleFilesSelected = useCallback(async (files: File[]) => {
-    setError(null);
-    setPendingFiles(files);
-    setPhase("confirming");
-    setProgress({
-      current: 0,
-      total: files.length,
-      label: "Counting pages...",
-    });
-
-    try {
-      const pdfjs = await import("pdfjs-dist");
-      pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-      const fileInfos: CostEstimate["files"] = [];
-
-      for (const file of files) {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-        fileInfos.push({ name: file.name, pageCount: pdf.numPages });
-      }
-
-      const totalPages = fileInfos.reduce((s, f) => s + f.pageCount, 0);
-      const estimatedCost = totalPages * 0.02;
-      setCostEstimate({ files: fileInfos, totalPages, estimatedCost });
-    } catch (err) {
-      console.error("Page count error:", err);
-      setError("Failed to read PDF files");
-      setPhase("upload");
-    }
-  }, []);
+  // Step 1: User selects files — go straight to processing
+  const handleFilesSelected = useCallback((files: File[]) => {
+    confirmAndProcess(files);
+  }, [confirmAndProcess]);
 
   // Step 2: User confirms — process all files
-  const confirmAndProcess = useCallback(async () => {
-    if (pendingFiles.length === 0) return;
+  const cancelProcessing = useCallback(() => {
+    cancelledRef.current = true;
+    setPhase("upload");
+    setProgress({ current: 0, total: 0, label: "" });
+  }, []);
+
+  const confirmAndProcess = useCallback(async (files?: File[]) => {
+    const filesToProcess = files ?? pendingFiles;
+    if (filesToProcess.length === 0) return;
+    cancelledRef.current = false;
     setError(null);
+    setPendingFiles(filesToProcess);
     setPhase("rendering");
 
     try {
@@ -120,13 +96,13 @@ export function useExercises() {
 
       let totalRendered = 0;
 
-      for (let fi = 0; fi < pendingFiles.length; fi++) {
-        const file = pendingFiles[fi];
+      for (let fi = 0; fi < filesToProcess.length; fi++) {
+        const file = filesToProcess[fi];
         const pages = await renderPdfToImages(file, (current, total) => {
           setProgress({
             current: totalRendered + current,
-            total: costEstimate?.totalPages ?? total,
-            label: `Rendering ${file.name} — page ${current}/${total} (PDF ${fi + 1}/${pendingFiles.length})`,
+            total,
+            label: `Rendering ${file.name} — page ${current}/${total} (PDF ${fi + 1}/${filesToProcess.length})`,
           });
         });
         for (const p of pages) {
@@ -141,6 +117,7 @@ export function useExercises() {
         [];
 
       for (let i = 0; i < allPages.length; i++) {
+        if (cancelledRef.current) break;
         setProgress({
           current: i + 1,
           total: allPages.length,
@@ -196,6 +173,8 @@ export function useExercises() {
         }
       }
 
+      if (cancelledRef.current) return;
+
       const pagesWithExercises = classifications.filter((c) => c.hasExercises);
       const skippedCount = allPages.length - pagesWithExercises.length;
 
@@ -205,6 +184,7 @@ export function useExercises() {
       let lastExerciseId: string | undefined;
 
       for (let i = 0; i < pagesWithExercises.length; i++) {
+        if (cancelledRef.current) break;
         const classification = pagesWithExercises[i];
         setProgress({
           current: i + 1,
@@ -515,12 +495,15 @@ export function useExercises() {
         }
       }
 
+      if (cancelledRef.current) return;
+
       // Crop exercises (both display and full)
       const cropExercise = await loadCrop();
       const cropExerciseFull = await loadCropFull();
       setPhase("cropping");
 
       for (let i = 0; i < allExercises.length; i++) {
+        if (cancelledRef.current) break;
         setProgress({
           current: i + 1,
           total: allExercises.length,
@@ -554,9 +537,10 @@ export function useExercises() {
         }
       }
 
+      if (cancelledRef.current) return;
+
       setExercises(allExercises);
       setPendingFiles([]);
-      setCostEstimate(null);
       setPhase("review");
     } catch (err) {
       console.error("Processing error:", err);
@@ -565,13 +549,7 @@ export function useExercises() {
       );
       setPhase("upload");
     }
-  }, [pendingFiles, costEstimate]);
-
-  const cancelConfirmation = useCallback(() => {
-    setPendingFiles([]);
-    setCostEstimate(null);
-    setPhase("upload");
-  }, []);
+  }, [pendingFiles]);
 
   // Selection
   const toggleSelection = useCallback((id: string) => {
@@ -617,7 +595,6 @@ export function useExercises() {
     setProgress({ current: 0, total: 0, label: "" });
     setError(null);
     setPendingFiles([]);
-    setCostEstimate(null);
     setDifficultyFilter("all");
   }, []);
 
@@ -630,11 +607,9 @@ export function useExercises() {
     difficultyFilter,
     difficultyCounts,
     error,
-    costEstimate,
     setDifficultyFilter,
     handleFilesSelected,
-    confirmAndProcess,
-    cancelConfirmation,
+    cancelProcessing,
     toggleSelection,
     selectAllVisible,
     clearSelection,

@@ -4,10 +4,12 @@ export function ExtractionProgress({
   current,
   total,
   label,
+  onCancel,
 }: {
   current: number;
   total: number;
   label: string;
+  onCancel?: () => void;
 }) {
   const percent = total > 0 ? Math.round((current / total) * 100) : 0;
 
@@ -22,6 +24,14 @@ export function ExtractionProgress({
           />
         </div>
         <p className="text-xs text-gray-400 mt-2">{percent}%</p>
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="mt-4 px-4 py-1.5 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer"
+          >
+            Cancel
+          </button>
+        )}
       </div>
     </div>
   );

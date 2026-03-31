@@ -41,9 +41,17 @@ export function cropExercise(
       );
 
       const sx = (left / 100) * img.naturalWidth;
-      const sy = (top / 100) * img.naturalHeight;
+      let sy = (top / 100) * img.naturalHeight;
       const sw = ((right - left) / 100) * img.naturalWidth;
-      const sh = ((bottom - top) / 100) * img.naturalHeight;
+      let sh = ((bottom - top) / 100) * img.naturalHeight;
+
+      const MIN_CROP_HEIGHT_PX = 80;
+      if (sh < MIN_CROP_HEIGHT_PX) {
+        // expand equally top and bottom to reach minimum
+        const diff = MIN_CROP_HEIGHT_PX - sh;
+        sy = Math.max(0, sy - Math.floor(diff / 2));
+        sh = Math.min(img.naturalHeight - sy, MIN_CROP_HEIGHT_PX);
+      }
 
       console.log(
         `[Crop] Pixel region: sx=${sx.toFixed(0)}, sy=${sy.toFixed(0)}, sw=${sw.toFixed(0)}, sh=${sh.toFixed(0)}`
