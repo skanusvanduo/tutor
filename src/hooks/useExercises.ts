@@ -70,12 +70,6 @@ export function useExercises() {
     return counts;
   }, [exercises]);
 
-  // Step 1: User selects files — go straight to processing
-  const handleFilesSelected = useCallback((files: File[]) => {
-    confirmAndProcess(files);
-  }, [confirmAndProcess]);
-
-  // Step 2: User confirms — process all files
   const cancelProcessing = useCallback(() => {
     cancelledRef.current = true;
     setPhase("upload");
@@ -550,6 +544,11 @@ export function useExercises() {
       setPhase("upload");
     }
   }, [pendingFiles]);
+
+  // Step 1: User selects files — go straight to processing
+  const handleFilesSelected = useCallback((files: File[]) => {
+    confirmAndProcess(files);
+  }, [confirmAndProcess]);
 
   // Selection
   const toggleSelection = useCallback((id: string) => {
