@@ -44,7 +44,16 @@ export default function Home() {
   const uniqueFiles = new Set(exercises.map((e) => e.sourceFile));
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
+      {/* Mobile message */}
+      <div className="block md:hidden min-h-screen flex flex-col items-center justify-center text-center px-6 bg-white">
+        <div className="text-5xl mb-6">🖥️</div>
+        <p className="text-lg font-medium text-gray-700">This tool is designed for desktop.</p>
+        <p className="text-sm text-gray-500 mt-2">Please open it on a computer.</p>
+      </div>
+
+      {/* App (desktop only) */}
+      <div className="hidden md:flex flex-col min-h-screen">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 flex items-center justify-between">
         <h1 className="text-sm font-semibold text-white">
@@ -164,6 +173,7 @@ export default function Home() {
           onClose={() => setShowWorksheet(false)}
         />
       )}
-    </div>
+      </div>
+      </>
   );
 }
