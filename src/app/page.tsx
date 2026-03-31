@@ -81,6 +81,11 @@ export default function Home() {
         </div>
       )}
 
+      {/* Mobile warning */}
+      <div className="block md:hidden bg-yellow-50 border-b border-yellow-200 px-4 py-3 text-yellow-800 text-sm text-center">
+        This tool works best on desktop. Please open it on a computer.
+      </div>
+
       {/* Upload phase */}
       {phase === "upload" && (
         <FileUpload onFilesSelected={handleFilesSelected} />
